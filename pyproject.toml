@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.128.0",
+    "pydantic[mypy]>=2.12.5",
+]
 
 [dependency-groups]
 dev = [
@@ -27,4 +30,6 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.12"
 strict = true
+plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
+disallow_untyped_decorators = false
