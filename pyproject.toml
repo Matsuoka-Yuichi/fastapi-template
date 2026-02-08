@@ -42,5 +42,6 @@ strict = true
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
 disallow_untyped_decorators = false
+warn_unused_ignores = false
 
 

@@ -41,22 +41,43 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes
 
-  # Optional: Celery worker (uncomment when you set up workers)
-  # worker:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: fastapi-worker
-  #   command: uv run celery -A workers.celery_app worker --loglevel=info
-  #   environment:
-  #     - REDIS_URL=redis://redis:6379/0
-  #     - ENVIRONMENT=${ENVIRONMENT:-development}
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - redis
-  #     - api
-  #   restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-worker
+    command: uv run celery -A workers.celery_app worker --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - api
+    volumes:
+      - ./src:/app/src  # For development hot-reload
+    restart: unless-stopped
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-beat
+    command: uv run celery -A workers.celery_app beat --loglevel=info
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - api
+    volumes:
+      - ./src:/app/src  # For development hot-reload
+    restart: unless-stopped
 
 volumes:
   redis-data:

@@ -68,4 +68,6 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()  # type: ignore[call-arg]
+# Mypy doesn't understand that BaseSettings loads from env vars at runtime.
+# The Pydantic plugin should handle this, but it's inconsistent, so we need the ignore.
+settings = Settings()  # type: ignore
