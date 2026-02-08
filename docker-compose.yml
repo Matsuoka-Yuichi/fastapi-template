@@ -1,0 +1,62 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi-app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - HOST=0.0.0.0
+      - PORT=8000
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=${DATABASE_URL:-}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - CLIENT_URL=${CLIENT_URL}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_PRICE_ID_PRO=${STRIPE_PRICE_ID_PRO}
+      - STRIPE_PRICE_ID_BUSINESS=${STRIPE_PRICE_ID_BUSINESS}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    volumes:
+      - ./src:/app/src  # For development hot-reload
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: fastapi-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Optional: Celery worker (uncomment when you set up workers)
+  # worker:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: fastapi-worker
+  #   command: uv run celery -A workers.celery_app worker --loglevel=info
+  #   environment:
+  #     - REDIS_URL=redis://redis:6379/0
+  #     - ENVIRONMENT=${ENVIRONMENT:-development}
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - redis
+  #     - api
+  #   restart: unless-stopped
+
+volumes:
+  redis-data:
