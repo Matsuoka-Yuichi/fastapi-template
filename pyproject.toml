@@ -11,10 +11,13 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi[standard]>=0.128.0",
     "pydantic[mypy]>=2.12.5",
+    "pydantic-settings>=2.6.1",
+    "celery>=5.4.0",
+    "redis>=5.0.0",
 ]
 
 [tool.hatch.build.targets.wheel]
-only-include = ["src"]
+packages = ["src/shared", "src/app"]
 
 [dependency-groups]
 dev = [
@@ -40,6 +43,4 @@ plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
 disallow_untyped_decorators = false
 
-[[tool.mypy.overrides]]
-module = ["shared.*", "app.*", "workers.*"]
-explicit_packages = true
+
