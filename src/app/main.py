@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from features.tasks.api import router as tasks_router
+from shared.features.tasks.api import router as tasks_router
 
 app = FastAPI()
 

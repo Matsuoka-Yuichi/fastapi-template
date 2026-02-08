@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "fastapi-template"
 version = "0.1.0"
@@ -8,6 +12,9 @@ dependencies = [
     "fastapi[standard]>=0.128.0",
     "pydantic[mypy]>=2.12.5",
 ]
+
+[tool.hatch.build.targets.wheel]
+only-include = ["src"]
 
 [dependency-groups]
 dev = [
@@ -32,3 +39,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 ignore_missing_imports = true
 disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = ["shared.*", "app.*", "workers.*"]
+explicit_packages = true
