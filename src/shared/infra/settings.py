@@ -14,10 +14,10 @@ class Settings(BaseSettings):
     port: int = 8000
 
     # Database
-    database_url: str | None = None
+    database_url: str
 
     # Redis
-    redis_url: str | None = None
+    redis_url: str
 
     # Logging
     log_level: str = "INFO"
@@ -46,6 +46,8 @@ class Settings(BaseSettings):
             "stripe_price_id_pro",
             "stripe_price_id_business",
             "stripe_webhook_secret",
+            "database_url",
+            "redis_url",
         ]
 
         missing_fields = []

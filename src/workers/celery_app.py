@@ -1,6 +1,9 @@
-from celery import Celery
+from typing import Any
 
-from shared.infra import settings
+from celery import Celery
+from celery.signals import worker_process_shutdown
+
+from shared.infra import db, settings
 
 # Create Celery app instance
 celery_app = Celery(
@@ -20,6 +23,18 @@ celery_app.conf.update(
     task_time_limit=30 * 60,  # 30 minutes
     task_soft_time_limit=25 * 60,  # 25 minutes
 )
+
+
+@worker_process_shutdown.connect
+def close_db_pool(sender: Any, **kwargs: Any) -> None:
+    """Close database pool when worker process shuts down.
+    
+    Note: We don't initialize the pool here - it's created lazily
+    when sync_connection() is first called in a task (after fork).
+    """
+    if settings.database_url:
+        db.close_sync_pool()
+
 
 # Import tasks to register them with Celery
 from workers import tasks  # noqa: E402, F401

@@ -1,21 +1,26 @@
-import random
-from datetime import datetime
+import logging
 
+from shared.features.event_sourcing.service import EventSourcingService
 from workers.celery_app import celery_app
+
+logger = logging.getLogger(__name__)
 
 
 @celery_app.task
-def print_random_number() -> None:
-    """Print a random number generated at the current time."""
-    number = random.randint(1, 1000)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"~~ {number} generated at {timestamp} ~~")
+def process_note_version_events() -> None:
+    """Process new note versions and create corresponding raw events."""
+    try:
+        service = EventSourcingService()
+        service.process_note_versions()
+    except Exception as e:
+        logger.error(f"Failed to process note version events: {e}", exc_info=True)
+        raise
 
 
 # Configure periodic task schedule
 celery_app.conf.beat_schedule = {
-    "print-random-number-every-30-seconds": {
-        "task": "workers.tasks.print_random_number",
-        "schedule": 30.0,  # Run every 30 seconds
+    "process-note-version-events-every-minute": {
+        "task": "workers.tasks.process_note_version_events",
+        "schedule": 60.0,  # Run every 60 seconds (1 minute)
     },
 }
