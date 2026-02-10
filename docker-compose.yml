@@ -46,7 +46,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi-worker
-    command: uv run celery -A workers.celery_app worker --loglevel=info
+    command: uv run celery -A workers.celery_app worker --loglevel=info -Q celery,semantic_reducer
     environment:
       - REDIS_URL=redis://redis:6379/0
       - DATABASE_URL=${DATABASE_URL:-}

@@ -17,11 +17,14 @@ logger = logging.getLogger(__name__)
 class EventSourcingService:
     """Service for orchestrating event sourcing operations."""
 
-    def process_note_versions(self) -> None:
+    def process_note_versions(self) -> list[int]:
         """Process new note versions and create corresponding raw events.
         
         This function is transaction-safe: all events and checkpoint updates
         are committed atomically, or the entire transaction is rolled back.
+        
+        Returns:
+            List of newly created raw event IDs
         """
         with db.sync_connection() as conn:
             # Ensure we're in a transaction (explicit autocommit=False for safety)
@@ -51,12 +54,13 @@ class EventSourcingService:
 
                 if not note_versions:
                     logger.info("No new note versions to process")
-                    return
+                    return []
 
                 # Process each note version with strict all-or-nothing semantics
                 # Any exception will bubble up and trigger transaction rollback
                 inserted_count = 0
                 already_exists_count = 0
+                newly_created_event_ids: list[int] = []
 
                 for note_version in note_versions:
                     event = RawEventCreate[NoteVersion](
@@ -79,6 +83,7 @@ class EventSourcingService:
                         )
                     else:
                         inserted_count += 1
+                        newly_created_event_ids.append(event_id)
                         logger.debug(
                             f"Created raw event {event_id} for note_version "
                             f"{note_version.id}"
@@ -107,6 +112,8 @@ class EventSourcingService:
                     f"Updated checkpoint: last_event_id={max_event_id}, "
                     f"last_event_at={max_event_time}"
                 )
+
+                return newly_created_event_ids
             except Exception as e:
                 # Any unhandled exception triggers rollback
                 conn.rollback()
